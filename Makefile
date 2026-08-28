@@ -4,7 +4,7 @@ LDFLAGS = -static -no-pie -s
 
 all: noteVirus stub.bin target
 
-noteVirus: src/protection/protection.c src/replication/replication.c src/infection/infection.c src/main.c
+noteVirus: src/propagation/propagation.c src/protection/protection.c src/replication/replication.c src/infection/infection.c src/main.c
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 stub.bin: src/stub/stub.s
