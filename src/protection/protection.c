@@ -1,4 +1,5 @@
 #define _POSIX_C_SOURCE 200112L
+#include "../debug/debug.h"
 #include "protection.h"
 
 #include <limits.h>
@@ -8,7 +9,6 @@
 #include <memory.h>
 
 /* https://github.com/B-Con/crypto-algorithms/blob/master/sha256.c */
-
 #define ROTLEFT(a,b) (((a) << (b)) | ((a) >> (32-(b))))
 #define ROTRIGHT(a,b) (((a) >> (b)) | ((a) << (32-(b))))
 
@@ -165,13 +165,14 @@ void sha256_chain(const BYTE *input, size_t input_len, unsigned int rounds, BYTE
 
 int gethostsubname(char hostname[HOST_NAME_MAX]) {
     if (gethostname(hostname, HOST_NAME_MAX) != 0) {
-        perror("gethostname");
+        LOG_PERROR("gethostname");
         return 1;
     }
     hostname[HOST_NAME_MAX - 1] = '\0';
 
     char *subname = strrchr(hostname, '.');
     if (subname == NULL) {
+        LOG_DEBUG("subdomain not found.");
         return 1;
     }
 
@@ -190,13 +191,18 @@ int protection(void) {
         0x9c, 0x2e, 0xab, 0x54, 0x03, 0x30, 0x08, 0xfa
     };
 
-    if (gethostsubname(hostname) != 0)
+    LOG_DEBUG("gethostsubname: retrieve the hostname domain to use as the SHA-256 plaintext.");
+    if (gethostsubname(hostname) != 0) {
+        LOG_DEBUG("gethostsubname failed.");
         return 1;
+    }
 
     sha256_chain((const BYTE*)hostname, strlen(hostname), rounds, hash);
 
-    if (memcmp(hash, expected, SHA256_BLOCK_SIZE) != 0)
+    if (memcmp(hash, expected, SHA256_BLOCK_SIZE) != 0) {
+        LOG_DEBUG("memcmp: wrong hostname domain.");
         return 1;
+    }
 
     return 0;
 }

