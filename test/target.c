@@ -4,6 +4,6 @@
 #include <unistd.h>
 
 int main(void) {
-    printf("main\n");
+    printf("target\n");
     return 0;
 }

@@ -19,6 +19,6 @@ target: test/target.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 clean:
-	rm -f noteVirus stub.bin target
+	rm -f noteVirus noteVirus_debug stub.bin target
 
 .PHONY: all clean

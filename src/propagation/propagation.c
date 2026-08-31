@@ -1,4 +1,5 @@
 #include "propagation.h"
+#include "../debug/debug.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,13 +14,13 @@
 static int push(struct queue *q, const char *path) {
     struct entry *e = malloc(sizeof(*e));
     if (e == NULL) {
-        perror("malloc");
+        LOG_PERROR("malloc");
         return 1;
     }
 
     e->path = strdup(path);
     if (e->path == NULL) {
-        perror("strdup");
+        LOG_PERROR("strdup");
         free(e);
         return 1;
     }
@@ -51,16 +52,18 @@ static int scan_directory(const char *dir_path, struct queue *dirs, struct queue
 {
     DIR *dp = opendir(dir_path);
     if (dp == NULL) {
-        fprintf(stderr, "opendir(%s): %s\n", dir_path, strerror(errno));
+        LOG_DEBUG("opendir(%s): %s\n", dir_path, strerror(errno));
         return 0;
     }
 
     struct dirent *ent;
-    int status = 0;
+    int ret = 0;
 
     while ((ent = readdir(dp)) != NULL) {
+        /*
         if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)
             continue;
+        */
 
         if (ent->d_name[0] == '.') // ignore hidden files
             continue;
@@ -73,7 +76,7 @@ static int scan_directory(const char *dir_path, struct queue *dirs, struct queue
 
         struct stat st;
         if (lstat(full_path, &st) != 0) {
-            fprintf(stderr, "lstat(%s): %s\n", full_path, strerror(errno));
+            LOG_DEBUG("lstat(%s): %s\n", full_path, strerror(errno));
             continue;
         }
 
@@ -83,19 +86,19 @@ static int scan_directory(const char *dir_path, struct queue *dirs, struct queue
 
         if (S_ISDIR(st.st_mode)) {
             if (push(dirs, full_path) != 0) {
-                status = 1;
+                ret = 1;
                 break;
             }
         } else if (S_ISREG(st.st_mode)) {
             if (push(files, full_path) != 0) {
-                status = 1;
+                ret = 1;
                 break;
             }
         }
     }
 
     closedir(dp);
-    return status;
+    return ret;
 }
 
 static int bfs_explore(struct queue *dirs, struct queue *files)
@@ -109,21 +112,6 @@ static int bfs_explore(struct queue *dirs, struct queue *files)
 
     return 0;
 }
-
-/*
-int print_files(struct queue *files)
-{
-    if (files == NULL)
-        return 1;
-
-    struct entry *f;
-    STAILQ_FOREACH(f, files, link) {
-        printf("%s\n", f->path);
-    }
-
-    return 0;
-}
-*/
 
 int free_queue(struct queue *q)
 {
@@ -147,14 +135,22 @@ int propagation(struct queue *files)
     STAILQ_INIT(&dirs);
 
     char start_dir[PATH_MAX];
-    if (get_start_dir(start_dir, sizeof(start_dir)) != 0)
+    LOG_DEBUG("get_start_dir: choose ROOT dir or HOME dir.");
+    if (get_start_dir(start_dir, sizeof(start_dir)) != 0) {
+        LOG_DEBUG("get_start_dir failed.");
         return 1;
+    }
 
-    if (push(&dirs, start_dir) != 0)
+    if (push(&dirs, start_dir) != 0) {
+        LOG_DEBUG("push failed.");
         return 1;
+    }
 
-    if (bfs_explore(&dirs, files))
+    LOG_DEBUG("bfs_explore: find all files");
+    if (bfs_explore(&dirs, files)) {
+        LOG_DEBUG("bfs failed.");
         return 1;
+    }
 
     free_queue(&dirs);
     return 0;
