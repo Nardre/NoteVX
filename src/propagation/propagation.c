@@ -90,7 +90,8 @@ static int scan_directory(const char *dir_path, struct queue *dirs, struct queue
                 ret = 1;
                 break;
             }
-        } else if (S_ISREG(st.st_mode)) {
+        }
+        else if (S_ISREG(st.st_mode)) {
             if (push(files, full_path) != 0) {
                 ret = 1;
                 break;
