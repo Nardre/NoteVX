@@ -43,14 +43,12 @@ static int open_and_map(char *file, int *fd, struct stat *st, char **map) {
     }
 
     if (fstat(*fd, st) != 0) {
-        close(*fd);
         LOG_PERROR("fstat failed.");
         return 1;
     }
 
     *map = mmap(NULL, st->st_size, PROT_READ | PROT_WRITE, MAP_SHARED, *fd, 0);
     if (*map == MAP_FAILED) {
-        close(*fd);
         LOG_PERROR("mmap failed.");
         return 1;
     }
@@ -135,7 +133,7 @@ static int create_section(char *map, struct queue *text, size_t text_size,
     struct node *phdr;
     STAILQ_FOREACH(phdr, data, entries) {
         LOG_DEBUG("create data: 0x%lx -> 0x%lx", phdr->offset, phdr->offset + phdr->filesz);
-        LOG_DEBUG("create data: 0x%lx -> 0x%lx\n", phdr->vaddr, phdr->vaddr+ phdr->filesz);
+        LOG_DEBUG("create data: 0x%lx -> 0x%lx\n", phdr->vaddr, phdr->vaddr + phdr->filesz);
         shdr[i].sh_name = 19; // .data
         shdr[i].sh_type = SHT_PROGBITS;
         shdr[i].sh_flags = SHF_ALLOC | SHF_WRITE;

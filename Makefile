@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra
+CFLAGS = -Wall -Wextra -Wpedantic -Werror
 LDFLAGS = -static -no-pie -s
 
 all: noteVirus stub.bin target fakeSection
